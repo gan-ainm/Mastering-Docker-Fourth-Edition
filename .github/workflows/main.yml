@@ -1,0 +1,30 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Create Multi Stage Docker Image CI
+
+# Controls when the action will run. 
+on: [push]
+
+jobs:
+  # This workflow contains a single job called "build"
+  build_docker_image:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-18.04
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v1
+
+      # Runs a single command using the runners shell
+      - name: Build and tag image
+        run: docker build -t "docker.pkg.github.com/$(echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]')/multi-stage:$GITHUB_RUN_NUMBER" -f ./chapter02/multi-stage/Dockerfile ./chapter02/multi-stage/
+
+      # Runs a set of commands using the runners shell
+      - name: Docker login
+        run: docker login docker.pkg.github.com -u $GITHUB_ACTOR -p $GITHUB_TOKEN 
+        env: GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      - name: Publish to GPR
+        run: docker push "docker.pkg.github.com/$(echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]')/multi-stage:$GITHUB_RUN_NUMBER"
+        
+        
